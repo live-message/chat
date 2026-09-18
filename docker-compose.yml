@@ -1,7 +1,7 @@
 services:
   app:
     image: nginx:alpine
-    container_name: static-app
+    container_name: lime
     restart: unless-stopped
     volumes:
       - ./web:/usr/share/nginx/html
