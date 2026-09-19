@@ -23,11 +23,11 @@ function showActiveLogo() {
   const color = parseInt(colorValue);
 
   const ranges = {
-    blueberry: { min: 1, max: 1 },
-    grape: { min: 141, max: 142 },
-    tomato: { min: 191, max: 192 },
-    carrot: { min: 241, max: 242 },
-    lemon: { min: 306, max: 307 },
+    blueberry: { min: 121, max: 121 },
+    grape: { min: 141, max: 141 },
+    tomato: { min: 191, max: 191 },
+    carrot: { min: 241, max: 241 },
+    lemon: { min: 306, max: 306 },
     lime: { min: 0, max: 360 },
   };
 
