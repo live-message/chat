@@ -7,7 +7,7 @@ let currentChat = null;
 
 function cleanupChat() {
   if (currentChat) {
-    currentChat.callUI?.destroy();   // ← добавить
+    currentChat.callUI?.destroy();
     currentChat.close();
     currentChat.ui.clearTextarea?.();
     currentChat = null;
@@ -58,6 +58,7 @@ function initChat() {
         .map(uid => ({ ...oldUsers[uid], uid }));
 
       ui.displayDiv();
+      callUI._removeCard(removedUsers[0].uid);
       notification(`${removedUsers[0].username} отключился`);
     })
 

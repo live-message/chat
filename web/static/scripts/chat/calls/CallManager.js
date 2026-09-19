@@ -76,7 +76,7 @@ export class CallManager {
     if (m.startedAt) this.startedAt = Math.min(this.startedAt, m.startedAt);
     const isNew = !this.peers.has(m.uid);
     const peer = this._getPeer(m.uid);
-    if (isNew) this.onPeerJoined?.(m.uid, m);   // ← карточка старичка у новичка
+    if (isNew) this.onPeerJoined?.(m.uid, m);
     if (peer.glare) {
       if (this.uid > m.uid) return;
       await peer.rollback();
