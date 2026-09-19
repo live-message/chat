@@ -62,6 +62,16 @@ export class PeerConnection {
     this.pc.addIceCandidate(candidate);
   }
 
+  hasVideo() {
+    return this.pc.getSenders().some((s) => s.track?.kind === "video");
+  }
+
+  removeVideo() {
+    this.pc.getSenders()
+      .filter((s) => s.track?.kind === "video")
+      .forEach((s) => this.pc.removeTrack(s));
+  }
+
   close() {
     this.pc.close();
   }

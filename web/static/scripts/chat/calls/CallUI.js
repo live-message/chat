@@ -20,6 +20,12 @@ export class CallUI {
     this.enlargeBtn.onclick = () => this._toggleEnlarge();
     this.timeEl.onclick = () => this._toggleEnlarge();
 
+    this.cameraBtn = document.getElementById("call-camera");
+
+    if (this.cameraBtn) {
+      this.cameraBtn.onclick = () => this.manager.toggleCamera();
+    }
+
     this._wire();
   }
 
@@ -31,6 +37,7 @@ export class CallUI {
     m.onPeerLeft = (uid) => this._removeCard(uid);
     m.onRemoteStream = (uid, s) => this._addAudio(uid, s);
     m.onMuteChange = (uid, mut) => this._setMute(uid, mut);
+    m.onCameraChange = (uid, cam) => this._setCamera(uid, cam);
   }
 
   _show() {
@@ -52,6 +59,7 @@ export class CallUI {
     this.panel.hidden = true;
     this.btn.classList.replace('iconoir-phone-disabled', 'iconoir-phone');
     this.btn.classList.remove('active');
+    this._cameraIcon();
   }
 
   _addCard(uid, user, self = false) {
@@ -101,15 +109,32 @@ export class CallUI {
   }
 
   _addAudio(uid, stream) {
+    if (stream.getVideoTracks().length) {
+      this._setCamera(uid, true);
+
+      const video = this.peersBox.querySelector(
+        `.call-card[data-uid="${uid}"] video`
+      );
+
+      if (video) video.srcObject = stream;
+
+      return;
+    }
+
     const a = new Audio();
+
     a.srcObject = stream;
     a.dataset.uid = uid;
     a.autoplay = true;
 
-    const input = this.peersBox.querySelector(`.call-card[data-uid="${uid}"] .volume`);
+    const input = this.peersBox.querySelector(
+      `.call-card[data-uid="${uid}"] .volume`
+    );
+
     a.volume = input ? Number(input.value) : 1;
 
     this.panel.append(a);
+
     this._updateLocalMuteUI(uid);
   }
 
@@ -119,9 +144,9 @@ export class CallUI {
 
     if (uid === this.userData.uid) {
       this.muteBtn.classList.remove("iconoir-microphone-mute-solid", "iconoir-microphone");
-      this.microHeader.classList.remove("iconoir-microphone-mute-solid", "iconoir-microphone");
+      this.microHeader.classList.remove("iconoir-microphone-mute-solid", "iconoir-microphone-solid");
 
-      const iconClass = muted ? "iconoir-microphone-mute-solid" : "iconoir-microphone";
+      const iconClass = muted ? "iconoir-microphone-mute" : "iconoir-microphone";
       this.muteBtn.classList.add(iconClass);
       this.microHeader.classList.add(iconClass);
     }
@@ -179,6 +204,49 @@ export class CallUI {
   _toggleEnlarge() {
     const min = this.panel.classList.toggle("minimized");
     this.enlargeBtn.firstElementChild.className = min ? "iconoir-enlarge" : "iconoir-reduce";
+  }
+
+  _setCamera(uid, camera) {
+    const card = this.peersBox.querySelector(`.call-card[data-uid="${uid}"]`);
+    if (!card) return;
+
+    const name = card.querySelector(".call-card__name");
+    let video = card.querySelector("video");
+
+    if (camera) {
+      if (!video) {
+        video = document.createElement("video");
+
+        video.autoplay = true;
+        video.playsInline = true;
+        video.muted = uid === this.userData.uid;
+
+        card.prepend(video);
+      }
+
+      if (uid === this.userData.uid) {
+        video.srcObject = this.manager.cameraStream;
+      }
+
+      if (name) name.hidden = true;
+    } else {
+      video?.remove();
+
+      if (name) name.hidden = false;
+    }
+
+    if (uid === this.userData.uid) {
+      this._cameraIcon();
+    }
+  }
+
+  _cameraIcon() {
+    if (!this.cameraBtn) return;
+
+    const on = this.manager.cameraOn;
+
+    this.cameraBtn.classList.toggle("iconoir-video-camera-off", !on);
+    this.cameraBtn.classList.toggle("iconoir-video-camera", on);
   }
 
   destroy() {
