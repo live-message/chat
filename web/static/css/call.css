@@ -88,6 +88,16 @@
     #call-peers {
         max-height: 100% !important;
     }
+
+    .call-card {
+        width: 180px !important;
+        height: 180px !important;
+    }
+
+    #call-panel>footer>button {
+        font-size: var(--h3) !important;
+    }
+
 }
 
 #call-panel>#call-peers {
@@ -114,10 +124,10 @@
     display: flex;
     flex-direction: row;
     gap: var(--gap);
-
 }
 
-div[data-uid] {
+.call-card {
+    position: relative;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -132,8 +142,32 @@ div[data-uid] {
 
 }
 
-div[data-uid]>* {
+.call-card>* {
     color: var(--accent);
+}
+
+
+.call-card.muted {
+    filter: blur(2px);
+    pointer-events: none;
+}
+
+.call-card>nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+    gap: 4px;
+}
+
+.call-card:hover>nav,
+.call-card:focus-within>nav {
+    opacity: 1;
+    visibility: visible;
 }
 
 #call-panel>footer button {

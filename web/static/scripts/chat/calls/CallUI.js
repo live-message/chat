@@ -14,6 +14,7 @@ export class CallUI {
 
     this.btn = document.getElementById("login-call");
     if (this.btn) this.btn.onclick = () => (this.manager.inCall ? this.manager.leave() : this.manager.join());
+
     this.muteBtn.onclick = () => this.manager.toggleMute();
     document.getElementById("call-leave").onclick = () => this.manager.leave();
     this.enlargeBtn.onclick = () => this._toggleEnlarge();
@@ -54,17 +55,49 @@ export class CallUI {
   }
 
   _addCard(uid, user, self = false) {
-    this.peersBox.insertAdjacentHTML("beforeend",
-      `<div data-uid="${uid}">
-         <p>${user.kaomoji}</p>
-         <span hidden>🔇</span>
-       </div>`);
+    const p = this.manager.participants.get(uid) || {};
+
+    this.peersBox.insertAdjacentHTML(
+      "beforeend",
+      `
+        <div class="call-card" data-uid="${uid}">
+          <p class="call-card__name"></p>
+          <nav>
+            ${self ? "" : `
+              <button class="local-mute iconoir-sound-high" type="button" title="Убрать звук"></button>
+              <input class="volume" type="range" min="0" max="1" step="0.01" value="${p.volume ?? 1}" title="Громкость">
+            `}
+          </nav>
+        </div>
+      `
+    );
+
+    const card = this.peersBox.querySelector(`.call-card[data-uid="${uid}"]`);
+    card.querySelector(".call-card__name").textContent = user.kaomoji || user.username || uid;
+
+    const input = card.querySelector(".volume");
+    const btn = card.querySelector(".local-mute");
+
+    if (input) input.oninput = () => this.setVolume(uid, Number(input.value));
+
+    if (btn && input) {
+      btn.dataset.prev = p.volume || 1;
+      btn.onclick = () => {
+        if (Number(input.value) === 0) this.setVolume(uid, Number(btn.dataset.prev || 1));
+        else this.setVolume(uid, 0);
+      };
+    }
+
+    this._updateLocalMuteUI(uid);
   }
 
   _removeCard(uid) {
     this.peersBox.querySelector(`[data-uid="${uid}"]`)?.remove();
     const a = this.panel.querySelector(`audio[data-uid="${uid}"]`);
-    if (a) { a.srcObject?.getTracks().forEach((t) => t.stop()); a.remove(); }
+    if (a) {
+      a.srcObject?.getTracks().forEach((t) => t.stop());
+      a.remove();
+    }
   }
 
   _addAudio(uid, stream) {
@@ -72,26 +105,62 @@ export class CallUI {
     a.srcObject = stream;
     a.dataset.uid = uid;
     a.autoplay = true;
-    a.volume = this.manager.participants.get(uid).volume;
+
+    const input = this.peersBox.querySelector(`.call-card[data-uid="${uid}"] .volume`);
+    a.volume = input ? Number(input.value) : 1;
+
     this.panel.append(a);
+    this._updateLocalMuteUI(uid);
   }
 
   _setMute(uid, muted) {
-    const badge = this.peersBox.querySelector(`.call-card[data-uid="${uid}"] .call-card__mute`);
-    if (badge) badge.hidden = !muted;
+    const card = this.peersBox.querySelector(`.call-card[data-uid="${uid}"]`);
+    if (card) card.classList.toggle("muted", muted);
+
     if (uid === this.userData.uid) {
-      this.muteBtn.classList.remove('iconoir-microphone-mute-solid', 'iconoir-microphone');
-      this.microHeader.classList.remove('iconoir-microphone-mute-solid', 'iconoir-microphone');
-      this.muteBtn.classList.add(muted ? 'iconoir-microphone-mute-solid' : 'iconoir-microphone');
-      this.microHeader.classList.add(muted ? 'iconoir-microphone-mute-solid' : 'iconoir-microphone');
+      this.muteBtn.classList.remove("iconoir-microphone-mute-solid", "iconoir-microphone");
+      this.microHeader.classList.remove("iconoir-microphone-mute-solid", "iconoir-microphone");
+
+      const iconClass = muted ? "iconoir-microphone-mute-solid" : "iconoir-microphone";
+      this.muteBtn.classList.add(iconClass);
+      this.microHeader.classList.add(iconClass);
     }
   }
 
-  // v: 0..1, по умолчанию 1 (100%). Кнопок пока нет — зови откуда угодно.
   setVolume(uid, v) {
-    this.manager.participants.setVolume(uid, v);
-    const a = this.panel.querySelector(`audio[data-uid="${uid}"]`);
-    if (a) a.volume = v;
+    v = Math.max(0, Math.min(1, Number(v) || 0));
+
+    const p = this.manager.participants.get(uid);
+    if (p) p.volume = v;
+
+    const audio = this.panel.querySelector(`audio[data-uid="${uid}"]`);
+    if (audio) audio.volume = v;
+
+    const card = this.peersBox.querySelector(`.call-card[data-uid="${uid}"]`);
+    if (!card) return;
+
+    const input = card.querySelector(".volume");
+    const btn = card.querySelector(".local-mute");
+
+    if (input) input.value = v;
+    if (btn && v > 0) btn.dataset.prev = v;
+
+    this._updateLocalMuteUI(uid);
+  }
+
+  _updateLocalMuteUI(uid) {
+    const card = this.peersBox.querySelector(`.call-card[data-uid="${uid}"]`);
+    if (!card) return;
+
+    const btn = card.querySelector(".local-mute");
+    const input = card.querySelector(".volume");
+    if (!btn || !input) return;
+
+    const muted = Number(input.value) === 0;
+
+    btn.classList.toggle("iconoir-sound-off", muted);
+    btn.classList.toggle("iconoir-sound-high", !muted);
+    btn.title = muted ? "Включить звук" : "Убрать звук";
   }
 
   _startTimer() {
