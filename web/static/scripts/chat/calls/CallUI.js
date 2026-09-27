@@ -46,6 +46,7 @@ export class CallUI {
     this.panel.hidden = false;
     this.btn.classList.replace('iconoir-phone', 'iconoir-phone-disabled');
     this.btn.classList.add('active');
+    this.btn.classList.add('color-none');
     this._startTimer();
   }
 
@@ -69,7 +70,10 @@ export class CallUI {
       "beforeend",
       `
         <div class="call-card" data-uid="${uid}">
-          <p class="call-card__name"></p>
+          <header>
+            <h5 class="username"></h5>
+          </header>
+          <p class="kaomoji"></p>
           <nav>
             ${self ? "" : `
               <button class="local-mute iconoir-sound-high" type="button" title="Убрать звук"></button>
@@ -81,7 +85,8 @@ export class CallUI {
     );
 
     const card = this.peersBox.querySelector(`.call-card[data-uid="${uid}"]`);
-    card.querySelector(".call-card__name").textContent = user.kaomoji || user.username || uid;
+    card.querySelector(".kaomoji").textContent = user.kaomoji || user.username || uid;
+    card.querySelector(".username").textContent = user.username || uid;
 
     const input = card.querySelector(".volume");
     const btn = card.querySelector(".local-mute");
@@ -211,7 +216,7 @@ export class CallUI {
     const card = this.peersBox.querySelector(`.call-card[data-uid="${uid}"]`);
     if (!card) return;
 
-    const name = card.querySelector(".call-card__name");
+    const name = card.querySelector(".kaomoji");
     let video = card.querySelector("video");
 
     if (camera) {
@@ -221,6 +226,7 @@ export class CallUI {
         video.autoplay = true;
         video.playsInline = true;
         video.muted = true;
+        video.classList.add('color-none');
 
         card.prepend(video);
       }
