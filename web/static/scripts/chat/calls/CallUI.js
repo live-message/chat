@@ -233,6 +233,7 @@ export class CallUI {
 
       if (uid === this.userData.uid) {
         video.srcObject = this.manager.cameraStream;
+        video.style.transform = 'scaleX(-1)';
       }
 
       if (name) name.hidden = true;
