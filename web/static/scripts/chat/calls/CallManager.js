@@ -11,6 +11,8 @@ export class CallManager {
     this.localStream = null;
     this.inCall = false;
     this.muted = false;
+    this.cameraOn = false;
+    this.cameraStream = null;
 
     this.onSelfJoined = null;
     this.onSelfLeft = null;
@@ -18,9 +20,6 @@ export class CallManager {
     this.onPeerLeft = null;
     this.onRemoteStream = null;
     this.onMuteChange = null;
-
-    this.cameraOn = false;
-    this.cameraStream = null;
     this.onCameraChange = null;
 
     this._bind();
@@ -30,10 +29,10 @@ export class CallManager {
     if (this.inCall) return;
     this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     this.inCall = true;
+    this.startedAt = Date.now();
     this.participants.add(this.userData);
     this.ws.send({ type: "call/join", ...this.userData });
     this.onSelfJoined?.();
-    this.startedAt = Date.now();
   }
 
   leave() {
@@ -52,6 +51,34 @@ export class CallManager {
     this.onMuteChange?.(this.uid, this.muted);
   }
 
+  async toggleCamera() {
+    if (!this.inCall) return;
+    this.cameraOn = !this.cameraOn;
+
+    if (this.cameraOn) {
+      this.cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const track = this.cameraStream.getVideoTracks()[0];
+      for (const uid of [...this.peers.keys()]) {
+        const peer = this.peers.get(uid);
+        if (!peer.hasVideo()) peer.addTrack(track, this.cameraStream);
+        await this._offer(uid);
+      }
+    } else {
+      for (const uid of [...this.peers.keys()]) {
+        const peer = this.peers.get(uid);
+        if (peer.hasVideo()) {
+          peer.removeVideo();
+          await this._offer(uid);
+        }
+      }
+      this.cameraStream?.getTracks().forEach((t) => t.stop());
+      this.cameraStream = null;
+    }
+
+    this.ws.send({ type: "call/camera", uid: this.uid, camera: this.cameraOn });
+    this.onCameraChange?.(this.uid, this.cameraOn);
+  }
+
   _bind() {
     this.ws.on("call/join", (m) => this._onJoin(m));
     this.ws.on("call/offer", (m) => this._onOffer(m));
@@ -66,28 +93,30 @@ export class CallManager {
     if (!this.inCall || m.uid === this.uid) return;
     this.participants.add(m);
     this.onPeerJoined?.(m.uid, m);
-    const offer = await this._getPeer(m.uid).createOffer();
-    this.ws.send({
-      type: "call/offer",
-      ...this.userData,
-      targetUid: m.uid,
-      sdp: offer,
-      startedAt: this.startedAt,
-    });
+    await this._offer(m.uid);
   }
 
   async _onOffer(m) {
     if (!this.inCall || m.targetUid !== this.uid) return;
     if (m.startedAt) this.startedAt = Math.min(this.startedAt, m.startedAt);
+
     const isNew = !this.peers.has(m.uid);
     const peer = this._getPeer(m.uid);
-    if (isNew) this.onPeerJoined?.(m.uid, m);
+
+    if (isNew) {
+      this.participants.add(m);
+      this.onPeerJoined?.(m.uid, m);
+      if (m.muted) this.onMuteChange?.(m.uid, true);
+      if (m.camera) this.onCameraChange?.(m.uid, true);
+    }
+
     if (peer.glare) {
       if (this.uid > m.uid) return;
       await peer.rollback();
     }
-    const answer = await peer.handleOffer(m.sdp);
-    this.ws.send({ type: "call/answer", uid: this.uid, targetUid: m.uid, sdp: answer });
+
+    const sdp = await peer.handleOffer(m.sdp);
+    this.ws.send({ type: "call/answer", uid: this.uid, targetUid: m.uid, sdp });
   }
 
   _onAnswer(m) {
@@ -113,6 +142,24 @@ export class CallManager {
     this.onMuteChange?.(m.uid, m.muted);
   }
 
+  _onCamera(m) {
+    if (m.uid === this.uid) return;
+    this.onCameraChange?.(m.uid, m.camera);
+  }
+
+  async _offer(uid) {
+    const sdp = await this._getPeer(uid).createOffer();
+    this.ws.send({
+      type: "call/offer",
+      ...this.userData,
+      targetUid: uid,
+      sdp,
+      startedAt: this.startedAt,
+      muted: this.muted,
+      camera: this.cameraOn,
+    });
+  }
+
   _getPeer(uid) {
     if (!this.peers.has(uid)) {
       const peer = new PeerConnection(
@@ -125,11 +172,9 @@ export class CallManager {
         }
       );
       this.localStream.getTracks().forEach((t) => peer.addTrack(t, this.localStream));
-
       if (this.cameraStream) {
         this.cameraStream.getTracks().forEach((t) => peer.addTrack(t, this.cameraStream));
       }
-
       this.peers.set(uid, peer);
     }
     return this.peers.get(uid);
@@ -140,72 +185,13 @@ export class CallManager {
     this.peers.delete(uid);
   }
 
-  async toggleCamera() {
-    if (!this.inCall) return;
-
-    if (!this.cameraOn) {
-      this.cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      this.cameraOn = true;
-
-      const track = this.cameraStream.getVideoTracks()[0];
-
-      for (const uid of [...this.peers.keys()]) {
-        const peer = this.peers.get(uid);
-
-        if (!peer.hasVideo()) {
-          peer.addTrack(track, this.cameraStream);
-        }
-
-        await this._sendOffer(uid);
-      }
-    } else {
-      this.cameraOn = false;
-
-      for (const uid of [...this.peers.keys()]) {
-        const peer = this.peers.get(uid);
-
-        if (peer.hasVideo()) {
-          peer.removeVideo();
-          await this._sendOffer(uid);
-        }
-      }
-
-      this.cameraStream?.getTracks().forEach((t) => t.stop());
-      this.cameraStream = null;
-    }
-
-    this.ws.send({
-      type: "call/camera",
-      uid: this.uid,
-      camera: this.cameraOn,
-    });
-
-    this.onCameraChange?.(this.uid, this.cameraOn);
-  }
-
-  async _sendOffer(uid) {
-    const offer = await this._getPeer(uid).createOffer();
-
-    this.ws.send({
-      type: "call/offer",
-      ...this.userData,
-      targetUid: uid,
-      sdp: offer,
-      startedAt: this.startedAt,
-    });
-  }
-
-  _onCamera(m) {
-    if (m.uid === this.uid) return;
-
-    this.onCameraChange?.(m.uid, m.camera);
-  }
-
   _teardown() {
     this.peers.forEach((_, uid) => this._removePeer(uid));
     this.participants.clear();
     this.localStream?.getTracks().forEach((t) => t.stop());
+    this.cameraStream?.getTracks().forEach((t) => t.stop());
     this.localStream = null;
+    this.cameraStream = null;
     this.inCall = false;
     this.muted = false;
     this.cameraOn = false;

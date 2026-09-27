@@ -57,7 +57,7 @@ export class ChatUI {
     const usersObj = this.users.getList();
 
     this.userListEl.innerHTML = keys.map(uid => {
-      const u = usersObj[uid]; // Достаем пользователя по ключу
+      const u = usersObj[uid];
       return `<h4><span>${u.kaomoji ?? ''}</span> <span>${u.username ?? ''}</span></h4>`;
     }).join('');
   }

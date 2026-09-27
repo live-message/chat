@@ -220,7 +220,7 @@ export class CallUI {
 
         video.autoplay = true;
         video.playsInline = true;
-        video.muted = uid === this.userData.uid;
+        video.muted = true;
 
         card.prepend(video);
       }
