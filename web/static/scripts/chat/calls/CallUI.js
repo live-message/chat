@@ -143,11 +143,12 @@ export class CallUI {
     if (card) card.classList.toggle("muted", muted);
 
     if (uid === this.userData.uid) {
-      this.muteBtn.classList.remove("iconoir-microphone-mute-solid", "iconoir-microphone");
+      this.muteBtn.classList.remove("iconoir-microphone-mute", "iconoir-microphone");
       this.microHeader.classList.remove("iconoir-microphone-mute-solid", "iconoir-microphone-solid");
 
-      const iconClass = muted ? "iconoir-microphone-mute" : "iconoir-microphone";
-      this.muteBtn.classList.add(iconClass);
+      const iconClass = muted ? "iconoir-microphone-mute-solid" : "iconoir-microphone-solid";
+      const iconClassBtn = muted ? "iconoir-microphone-mute" : "iconoir-microphone";
+      this.muteBtn.classList.add(iconClassBtn);
       this.microHeader.classList.add(iconClass);
     }
   }
