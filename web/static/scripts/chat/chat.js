@@ -25,6 +25,7 @@ function initChat() {
       kaomoji: localStorage.getItem("kaomoji"),
       uid: localStorage.getItem("uid"),
       username: localStorage.getItem("username"),
+      uid: localStorage.getItem("uid"),
     };
   }
 

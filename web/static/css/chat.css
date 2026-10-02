@@ -10,7 +10,7 @@
 
 
 
-body:has(#message) {
+body {
     background-color: var(--chat-background-color) !important;
     padding: 0 !important;
     max-height: 100dvh;

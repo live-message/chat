@@ -1,0 +1,29 @@
+body>main {
+    align-items: center;
+    justify-content: center;
+    padding: var(--padding);
+}
+
+#bot {
+    gap: var(--gap);
+    width: auto;
+    min-width: 250px;
+
+}
+
+#bot>#messageBot {
+    background-color: var(--background-color);
+    padding: calc(var(--padding) * 1.5);
+    border-radius: var(--border-radius);
+    width: auto;
+    height: auto;
+}
+
+#bot>#buttons,
+#bot>#buttons>nav {
+    gap: calc(var(--gap)/2);
+}
+
+#bot>#buttons>nav>button {
+    flex: 1;
+}

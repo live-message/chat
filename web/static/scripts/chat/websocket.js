@@ -16,9 +16,10 @@ async function getServer() {
 }
 
 export class ChatWebSocket {
-  constructor(roomId, userData) {
+  constructor(roomId, userData, typeRoom) {
     this.roomId = roomId;
     this.userData = userData;
+    this.typeRoom = typeRoom;
     this.ws = null;
     this.handlers = new Map();
     this.destroyed = false;
@@ -30,20 +31,18 @@ export class ChatWebSocket {
       console.log("ChatWebSocket: connect отменён, объект уже уничтожен");
       return this;
     }
-    if (server.address == "127.0.0.1") {
-      const wsUrl = `ws://${server.address}:${server.port}/ws/${this.roomId}`;
-      this.ws = new WebSocket(wsUrl);
-    } else {
-      const wsUrl = `wss://${server.address}:${server.port}/ws/${this.roomId}`;
-      this.ws = new WebSocket(wsUrl);
-    }
+
+    const prefix = server.address === "127.0.0.1" ? "ws" : "wss";
+    const wsUrl = `${prefix}://${server.address}:${server.port}/${this.typeRoom}/${this.roomId}`;
+
+    this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
       if (this.destroyed) {
         this.ws.close();
         return;
       }
-      this.send({ ...this.userData, type: "users/join" });
+      this.send({ user: { ...this.userData }, type: "welcome" });
     };
 
     this.ws.onmessage = (event) => {

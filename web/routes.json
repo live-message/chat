@@ -4,6 +4,11 @@
       "path": "/chat/{chatId}",
       "page": "chat.html",
       "seo": {}
+    },
+    {
+      "path": "/bot/demo",
+      "page": "bot.html",
+      "seo": {}
     }
   ]
 }
