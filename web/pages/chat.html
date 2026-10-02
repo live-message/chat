@@ -17,33 +17,32 @@
 </head>
 
 <body>
-    <main>
-        <header>
+    <header>
+        <nav>
+            <h4 id="chat-title"></h4>
+            <aside id="call-panel" class="minimized" hidden>
+                <header>
+                    <nav>
+                        <h4 id="call-mute-header" class="iconoir-microphone-solid"></h4>
+                        <h4 id="call-time">00:00</h4>
+                        <button id="call-enlarge"><span class="iconoir-enlarge"></span></button>
+                    </nav>
+                </header>
+                <div id="call-peers"></div>
+                <footer>
+                    <button id="call-mute" class="iconoir-microphone" title="Микрофон"></button>
+                    <button id="call-camera" class="iconoir-video-camera-off" title="Камера"></button>
+                    <button id="call-leave" class="iconoir-phone-disabled color-none" title="Выйти из звонка"></button>
+                </footer>
+            </aside>
+            <div id="call-audio" hidden></div>
             <nav>
-                <h4 id="chat-title"></h4>
-                <aside id="call-panel" class="minimized" hidden>
-                    <header>
-                        <nav>
-                            <h4 id="call-mute-header" class="iconoir-microphone-solid"></h4>
-                            <h4 id="call-time">00:00</h4>
-                            <button id="call-enlarge"><span class="iconoir-enlarge"></span></button>
-                        </nav>
-                    </header>
-                    <div id="call-peers"></div>
-                    <footer>
-                        <button id="call-mute" class="iconoir-microphone" title="Микрофон"></button>
-                        <button id="call-camera" class="iconoir-video-camera-off" title="Камера"></button>
-                        <button id="call-leave" class="iconoir-phone-disabled color-none"
-                            title="Выйти из звонка"></button>
-                    </footer>
-                </aside>
-                <div id="call-audio" hidden></div>
-                <nav>
-                    <button id="login-call" class="iconoir-phone"></button>
-                    <button class="iconoir-menu" menu="chat-menu"></button>
-                </nav>
+                <button id="login-call" class="iconoir-phone"></button>
+                <button class="iconoir-menu" menu="chat-menu"></button>
             </nav>
-        </header>
+        </nav>
+    </header>
+    <main>
         <section id="message">
             <div id="users-none" hidden>
                 <h3>В чате никого нет</h3>

@@ -16,7 +16,7 @@ body:has(#message) {
     max-height: 100dvh;
 }
 
-main>header {
+body>header {
     position: fixed;
     padding: var(--padding) calc(var(--padding)*2);
     box-sizing: border-box;
@@ -26,14 +26,19 @@ main>header {
     margin-right: auto;
     border-radius: var(--border-radius) 0 0 var(--border-radius);
     max-width: var(--max-width);
+    width: 100%;
 
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
     z-index: 1000;
 }
 
-main>header * {
+body>header * {
     color: var(--accent) !important;
+}
+
+body>header~main {
+    padding-top: 0 !important;
 }
 
 #users-list h4 {
@@ -125,4 +130,16 @@ main>header * {
 textarea::placeholder {
     position: absolute;
     font-size: clamp(1rem, 4vw, 1.25rem);
+}
+
+@media (max-width: 768px) {
+    body>header>nav>* {
+        flex-direction: row !important;
+        min-width: auto;
+        gap: auto;
+    }
+
+    body>header {
+        bottom: auto !important;
+    }
 }
