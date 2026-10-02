@@ -30,9 +30,13 @@ export class ChatWebSocket {
       console.log("ChatWebSocket: connect отменён, объект уже уничтожен");
       return this;
     }
-
-    const wsUrl = `wss://${server.address}:${server.port}/ws/${this.roomId}`;
-    this.ws = new WebSocket(wsUrl);
+    if (server.address == "127.0.0.1") {
+      const wsUrl = `ws://${server.address}:${server.port}/ws/${this.roomId}`;
+      this.ws = new WebSocket(wsUrl);
+    } else {
+      const wsUrl = `wss://${server.address}:${server.port}/ws/${this.roomId}`;
+      this.ws = new WebSocket(wsUrl);
+    }
 
     this.ws.onopen = () => {
       if (this.destroyed) {
