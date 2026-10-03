@@ -31,27 +31,30 @@ function initChat() {
 
   const userData = getCurrentUserData();
 
-  const ws = new ChatWebSocket(roomId, userData);
+  const ws = new ChatWebSocket(roomId, userData, "users");
   const usersManager = new UsersManager();
   const ui = new ChatUI(usersManager);
   ui.displayDiv();
 
-  ws.on("users/welcome", (msg) => {
-    if (msg.uid === userData.uid) return;
-    usersManager.add(msg);
+  ws.on("welcome", (msg) => {
+    const user = msg.user
+    if (user.uid === userData.uid) return;
+    usersManager.add(user);
     ui.displayDiv();
+    ws.send({ user: { ...getCurrentUserData() }, type: "join" });
   })
-    .on("users/join", (msg) => {
-      if (msg.uid === userData.uid) return;
-      usersManager.add(msg);
+    .on("join", (msg) => {
+      const user = msg.user;
+      if (user.uid === userData.uid) return;
+      usersManager.add(user);
       ui.displayDiv();
       notification(`${msg.username} подключился`);
-      ws.send({ ...getCurrentUserData(), type: "users/welcome" });
+      ws.send({ user: { ...getCurrentUserData() }, type: "welcome" });
     })
-    .on("users/exit", (msg) => {
+    .on("exit", (msg) => {
       const oldUsers = usersManager.getList();
       usersManager.clear()
-      ws.send({ ...getCurrentUserData(), type: "users/welcome" });
+      ws.send({ user: { ...getCurrentUserData() }, type: "welcome" });
       const newUsers = usersManager.getList();
 
       const removedUsers = Object.keys(oldUsers)
@@ -70,12 +73,12 @@ function initChat() {
 
   ui.onInput(() => {
     const text = ui.textarea?.value || "";
-    ws.send({ ...getCurrentUserData(), text });
+    ws.send({ user: { ...getCurrentUserData() }, text });
   });
 
   ui.onReset(() => {
     ui.clearTextarea();
-    ws.send({ ...getCurrentUserData(), text: "" });
+    ws.send({ user: { ...getCurrentUserData() }, text: "" });
   });
 
   ws.connect();

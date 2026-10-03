@@ -10,7 +10,7 @@ async function getServer() {
     const servers = await response.json();
     return servers[0];
   } catch (error) {
-    console.warn("Не удалось подключиться к серверу:", error.message);
+    console.warn("Используется локальный сервер:", error.message);
     return { address: "127.0.0.1", port: 3000 };
   }
 }
@@ -51,7 +51,7 @@ export class ChatWebSocket {
         const msg = JSON.parse(event.data);
         this.handleMessage(msg);
       } catch (error) {
-        console.error("Ошибка разбора сообщения WebSocket:", error);
+        console.error(`Ошибка разбора WS:`, error);
       }
     };
 
