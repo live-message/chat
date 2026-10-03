@@ -1,4 +1,5 @@
 import { ChatWebSocket } from "../websocket.js";
+import { renderBot } from "./ui.js";
 
 let currentChat = null;
 
@@ -18,8 +19,11 @@ function initChat() {
   const ws = new ChatWebSocket(botName, userData, "bot");
 
   ws.on("welcome", (data) => {
-    console.log(data);
+    console.log("welcome data:", data);
 
+    renderBot(data.bot, (callbackData, buttonData) => {
+      ws.send({ user: { ...getCurrentUserData() }, type: "button", callback: callbackData });
+    });
   });
 
 
