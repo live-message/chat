@@ -3,5 +3,20 @@ const CATEGORIES = ['smile', 'happy', 'yorokobu', 'yatta', 'sumairu', 'doya', 'y
 export async function getKaomoji(category = 'salute') {
   const url = `https://cdn.jsdelivr.net/gh/kaomojiya-collection/kaomoji-collection@main/categories/${category}.json`;
   const response = await fetch(url);
-  return await response.json();
+  const data = await response.json();
+
+  if (Array.isArray(data)) {
+    return data.map(str => str
+      .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+      .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'")
+    );
+  }
+
+  return data;
 }
