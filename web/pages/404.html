@@ -1,0 +1,25 @@
+<head>
+
+</head>
+
+<body>
+    <section>
+        <h2 class="accent" id="kaomoji"></h2>
+        <h4>Страница <b class="accent" id="page"></b> не найдена</h4>
+        <a href="/"><button>Вернуться на главную</button></a>
+    </section>
+</body>
+
+<script type="module">
+    import {getKaomoji} from './static/scripts/user/kaomoji.js';
+
+    const kaomojiList = await getKaomoji("sad");
+    const randomIndex = Math.floor(Math.random() * kaomojiList.length);
+    document.getElementById('kaomoji').textContent = kaomojiList[randomIndex];
+
+    const page = window.location.pathname;
+    if (page) {
+        document.getElementById('page').textContent = page;
+    }
+
+</script>
