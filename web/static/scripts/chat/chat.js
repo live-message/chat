@@ -38,19 +38,18 @@ function initChat() {
 
   ws.on("welcome", (msg) => {
     const user = msg.user
-    if (user.uid === userData.uid) return;
     usersManager.add(user);
     ui.displayDiv();
-    ws.send({ user: { ...getCurrentUserData() }, type: "join" });
+    notification(`${user.username} с нами`)
+    ws.send({ user: { ...getCurrentUserData() }, type: "welcome_to" })
   })
-    .on("join", (msg) => {
-      const user = msg.user;
-      if (user.uid === userData.uid) return;
+
+    .on("welcome_to", (msg) => {
+      const user = msg.user
       usersManager.add(user);
       ui.displayDiv();
-      notification(`${msg.username} подключился`);
-      ws.send({ user: { ...getCurrentUserData() }, type: "welcome" });
     })
+
     .on("exit", (msg) => {
       const oldUsers = usersManager.getList();
       usersManager.clear()
@@ -67,18 +66,18 @@ function initChat() {
     })
 
     .on("message", (msg) => {
-      usersManager.update(msg);
-      ui.updateMessage(`${msg.username}: ${msg.text}`, msg);
+      const user = msg.user
+      ui.updateMessage(user, msg);
     });
 
   ui.onInput(() => {
     const text = ui.textarea?.value || "";
-    ws.send({ user: { ...getCurrentUserData() }, text });
+    ws.send({ user: { ...getCurrentUserData() }, type: "message", text });
   });
 
   ui.onReset(() => {
     ui.clearTextarea();
-    ws.send({ user: { ...getCurrentUserData() }, text: "" });
+    ws.send({ user: { ...getCurrentUserData() }, type: "message", text: "" });
   });
 
   ws.connect();

@@ -40,13 +40,13 @@ export class ChatUI {
     }
   }
 
-  updateMessage(text = '', msg) {
-    const hasText = text.trim().length > 0;
+  updateMessage(user, msg) {
+    // const hasText = text.trim().length > 0;
     if (msg.text === "") {
       this.message.textContent = '';
       this.displayDiv(false);
     } else {
-      this.message.textContent = text;
+      this.message.textContent = `${user.kaomoji}: ${msg.text}`;
       this.displayDiv(true);
     }
   }
