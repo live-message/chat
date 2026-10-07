@@ -46,7 +46,7 @@ export class ChatUI {
       this.message.textContent = '';
       this.displayDiv(false);
     } else {
-      this.message.textContent = `${user.kaomoji}: ${msg.text}`;
+      this.message.textContent = `${user.username}: ${msg.text}`;
       this.displayDiv(true);
     }
   }

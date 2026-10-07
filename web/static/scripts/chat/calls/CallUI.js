@@ -60,6 +60,7 @@ export class CallUI {
     this.panel.hidden = true;
     this.btn.classList.replace('iconoir-phone-disabled', 'iconoir-phone');
     this.btn.classList.remove('active');
+    this.btn.classList.remove('color-none');
     this._cameraIcon();
   }
 
